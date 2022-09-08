@@ -1,31 +1,18 @@
-- [prometheus_bot](#prometheus-bot)
-  * [Compile](#compile)
-  * [Usage](#usage)
-    + [Configuring alert manager](#configuring-alert-manager)
-  * [Test](#test)
-    + [Create your own test](#create-your-own-test)
-  * [Customising messages with template](#customising-messages-with-template)
-    + [Template extra functions](#template-extra-functions)
-      - [Support this functions list](#support-this-functions-list)
-  * [Production example](#production-example)
-
 # prometheus_bot
 
 This bot is designed to alert messages from [alertmanager](https://github.com/prometheus/alertmanager).
 
-## Compile
+## Build
 
-[GOPATH related doc](https://golang.org/doc/code.html#GOPATH).
+Go language shoult be installed in your system, just run:
+
 ```bash
-export GOPATH="your go path"
-make clean
-make
-```
+./build.sh
+````
 
 ## Usage
 
 1. Create Telegram bot with [BotFather](https://t.me/BotFather), it will return your bot token
-
 2. Specify telegram token in ```config.yaml```:
 
     ```yml
@@ -43,7 +30,7 @@ make
     1. Start conversation, send message to bot mentioning it
     2. Add your bot to a group. It should report group id now. To get ID of a group if bot is already a member [send a message that starts with `/`](https://core.telegram.org/bots#privacy-mode)
 
-### Configuring alert manager
+### Start and Configuring alert manager
 
 Alert manager configuration file:
 
@@ -51,12 +38,13 @@ Alert manager configuration file:
 - name: 'admins'
   webhook_configs:
   - send_resolved: True
-    url: http://127.0.0.1:9087/alert/chat_id
+    url: http://127.0.0.1:9087/alert/<chat_id>
 ```
 
-Replace ```chat_id``` with the value you got from your bot, ***with everything inside the quotes***.
-(Some chat_id's start with a ```-```, in this case, you must also include the ```-``` in the url)
-To use multiple chats just add more receivers.
+Start:
+```bash
+./prometheus_bot -c config.yml -t template.tmpl
+```
 
 ## Test
 
@@ -84,17 +72,14 @@ TELEGRAM_CHATID="YOUR TELEGRAM CHAT ID" make test
 
 ## Customising messages with template
 
-This bot support [go templating language](https://golang.org/pkg/text/template/).
-Use it for customising your message.
+This bot support [go templating language](https://golang.org/pkg/text/template/). Use it for customising your message.
 
 To enable template set these settings in your ```config.yaml``` or template will be skipped.
 
 ```yml
 telegram_token: "token here"
 template_path: "template.tmpl" # your template file name
-time_zone: "Europe/Rome" # your time zone check it out from WIKI
-split_token: "|" # token used for split measure label.
-disable_notification: true  # disable notification for messages.
+...
 ```
 
 You can also pass template path with `-t` command line argument, it has higher priority than the config option.
@@ -117,17 +102,12 @@ Template language support many different functions for text, number and data for
 
 #### Support this functions list
 
--   ```str_UpperCase```: Convert string to uppercase
--   ```str_LowerCase```: Convert string to lowercase
--   ```str_Title```: Convert string in Title, "title" --> "Title" fist letter become Uppercase
--   DEPRECATED  ```str_Format_Byte```: Convert number expressed in ```Byte``` to number in related measure unit. It use ```strconv.ParseFloat(..., 64)``` take look at go related doc for possible input format, usually every think '35.95e+06' is correct converted.
-Example:
-    -    35'000'000 [Kb] will converter to '35 Gb'
-    -    89'000 [Kb] will converter to '89 Mb'
--   ```str_Format_MeasureUnit```: Convert string to scaled number and add append measure unit label. For add measure unit label you could add it in prometheus alerting rule. Example of working: 8*e10 become 80G. You cuold also start from a different scale, example kilo:"s|g|3". Check production example for complete implementation. Require ```split_token: "|"``` in conf.yaml
--   ```HasKey```: Param:dict map, key_search string Search in map if there requeted key
-
--    ```str_FormatDate```: Convert prometheus string date in your preferred date time format, config file param ```time_outdata``` could be used for setup your favourite format
+-   `str_UpperCase`: Convert string to uppercase
+-   `str_LowerCase`: Convert string to lowercase
+-   `str_Title`: Convert string in Title, "title" --> "Title" fist letter become Uppercase
+-   `str_Format_MeasureUnit`: Convert string to scaled number and add append measure unit label. For add measure unit label you could add it in prometheus alerting rule. Example of working: 8*e10 become 80G. You cuold also start from a different scale, example kilo:"s|g|3". Check production example for complete implementation. Require ```split_token: "|"``` in conf.yaml
+-   `HasKey`: Param:dict map, key_search string Search in map if there requeted key
+-    `str_FormatDate`: Convert prometheus string date in your preferred date time format, config file param ```time_outdata``` could be used for setup your favourite format
 Require more setting in your cofig.yaml
 ```yaml
 time_zone: "Europe/Rome"
@@ -145,3 +125,6 @@ Production example contains a example of how could be a real template.
 It could be a base, for build a real template, or simply copy some part, check-out how to use functions.
 Sysadmin usually love copy.
 
+## Links
+
+* Original [README.md](https://github.com/inCaller/prometheus_bot)
