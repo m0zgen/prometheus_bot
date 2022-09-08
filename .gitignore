@@ -1,3 +1,6 @@
 prometheus_bot
 bot.log
 config.yaml
+
+dist/
+.DS_Store
